@@ -57,6 +57,10 @@
         #result {
             margin-top: 20px;
         }
+        #result img {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -105,18 +109,30 @@
         function detectImage() {
             const imageInput = document.getElementById('imageInput').files[0];
             const formData = new FormData();
-            formData.append('image', imageInput);
+            formData.append('file', imageInput);
 
             fetch('http://localhost:5000/detect', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('result').innerText = data.result;
+            .then(response => {
+                if (response.ok) {
+                    return response.blob(); // Convert response to blob (binary large object)
+                } else {
+                    throw new Error('Network response was not ok.');
+                }
+            })
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const img = document.createElement('img');
+                img.src = url;
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = ''; // Clear previous results
+                resultDiv.appendChild(img);
             })
             .catch(error => {
                 console.error('Error:', error);
+                document.getElementById('result').innerText = 'An error occurred';
             });
         }
     </script>
